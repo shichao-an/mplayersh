@@ -66,15 +66,11 @@ while (( "$#" )); do
     fi
 done
 
-echo ${args[@]}
 if [ -z "$filename" ]
 then
     echo 'No filename specified.'
     exit 1
 fi
-
-echo "seconds: $seconds"
-echo "minutes: $minutes"
 
 # If either `-seconds` or `-minutes` is specified
 if [ -n "$seconds" -o -n "$minutes" ] 
@@ -88,13 +84,11 @@ then
         minutes=0
     fi
     framerate=$(ffmpeg -i $filename 2>&1 | sed -n 's/.*, \(.*\) tbr.*/\1/p')
-    echo $framerate
     seconds=$(echo "scale=2; $seconds*$framerate" | bc)
-    echo "seconds: $seconds"
     minutes=$(echo "scale=2; $minutes*$framerate*60" | bc)
     frames=$(echo "$seconds+$minutes" | bc)
     frames=$(echo "($frames+0.5)/1" | bc)
-    echo $mplayer -frames "$frames" "${args[@]}" "$filename"
+    $mplayer -frames "$frames" "${args[@]}" "$filename"
 else
-    echo $mplayer "${args[@]}" "$filename"
+    $mplayer "${args[@]}" "$filename"
 fi  
