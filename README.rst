@@ -3,6 +3,12 @@ mplayersh
 
 Command-line wrapper to extend arguments for MPlayer
 
+Requirements
+------------
+
+* MPlayer (command-line)
+* ffmpeg
+
 Usage
 -----
 ::
