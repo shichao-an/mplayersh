@@ -1,0 +1,100 @@
+#!/bin/bash
+# Extended wrapper for MPlayer from command-line
+
+# Required argument:
+#   -filename FILENAME
+# Optional arguments:
+#   -seconds SECONDS
+#   -minutes MINUTES
+
+# Default values
+mplayer="mplayer"
+framerate=30
+usage="$0 [-seconds SECONDS] [-minutes MINUTES] [...] -filename FILENAME "
+# Array storing remaining arguments
+args=()
+
+# Test whether a string is a (positive digit)
+function isdigit() {
+    echo $1 | grep -E '^[0-9]*\.?[0-9]*$' > /dev/null
+}
+
+# Print help if no arguments given
+if [ "$#" -eq 0 ]
+then
+    echo "$usage"
+    exit 0
+fi
+
+# Print help if `-h` or `--help` given
+for arg in "$@"
+do
+    if [ "$arg" = "-h" -o "$arg" = "--help" ]
+    then
+       echo "$usage"
+       exit 0
+    fi 
+done
+while (( "$#" )); do
+    echo $#
+    if [ "$1" = "-seconds" ]
+    then
+        if ! isdigit $2
+        then
+            echo "Not a valid -seconds value."
+            exit 1
+        fi
+        seconds="$2"
+        shift 2
+    elif [ "$1" = "-minutes" ]
+    then
+        if ! isdigit $2
+        then
+            echo "Not a valid -minutes value."
+            exit 1
+        fi
+        minutes="$2"
+        shift 2
+    elif [ "$1" = "-filename" ]
+    then
+        filename="$2"
+        shift 2
+    else
+        echo "other args: $1"
+        args+=($1)
+        shift
+    fi
+done
+
+echo ${args[@]}
+if [ -z "$filename" ]
+then
+    echo 'No filename specified.'
+    exit 1
+fi
+
+echo "seconds: $seconds"
+echo "minutes: $minutes"
+
+# If either `-seconds` or `-minutes` is specified
+if [ -n "$seconds" -o -n "$minutes" ] 
+then
+    if [ -z "$seconds" ]
+    then
+        seconds=0
+    fi
+    if [ -z "$minutes" ]
+    then
+        minutes=0
+    fi
+    framerate=$(ffmpeg -i $filename 2>&1 | sed -n 's/.*, \(.*\) tbr.*/\1/p')
+    echo $framerate
+    seconds=$(echo "scale=2; $seconds*$framerate" | bc)
+    echo "seconds: $seconds"
+    minutes=$(echo "scale=2; $minutes*$framerate*60" | bc)
+    frames=$(echo "$seconds+$minutes" | bc)
+    frames=$(echo "($frames+0.5)/1" | bc)
+    echo $mplayer -frames "$frames" "${args[@]}" "$filename"
+else
+    echo $mplayer "${args[@]}" "$filename"
+fi  
