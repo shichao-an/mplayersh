@@ -1,5 +1,5 @@
 #!/bin/bash
-# Extended wrapper for MPlayer from command-line
+# Extended command-line wrapper for MPlayer
 
 # Required argument:
 #   -filename FILENAME
